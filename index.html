@@ -496,7 +496,7 @@ header {
 
   <!-- VIDEO ZONE -->
   <div class="video-zone" id="videoZone">
-    <video id="video" playsinline muted></video>
+    <video id="video" playsinline muted onclick="tapFocus(event)"></video>
 
     <div class="scan-frame">
       <div class="sf-inner">
@@ -526,6 +526,7 @@ header {
         <span id="btnStartIcon">▶</span>
         <span id="btnStartLabel">Avvia</span>
       </button>
+      <button class="ctrl-btn ctrl-flip" id="btnTorch" onclick="toggleTorch()">🔦 Torcia</button>
       <button class="ctrl-btn ctrl-flip" onclick="flipCamera()">
         ⟳ Camera
       </button>
@@ -655,8 +656,37 @@ async function startCamera() {
   if (!ok) return;
 
   try {
-    const deviceId = cameras[camIdx]?.deviceId || undefined;
-    await reader.decodeFromVideoDevice(deviceId, 'video', onDecode);
+    const deviceId = cameras[camIdx]?.deviceId;
+
+    // Constraints con autofocus continuo ravvicinato
+    const constraints = {
+      video: {
+        ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: 'environment' } }),
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 },
+        focusMode:        { ideal: 'continuous' },
+        focusDistance:    { ideal: 0.1, min: 0.05 },
+        exposureMode:     { ideal: 'continuous' },
+        whiteBalanceMode: { ideal: 'continuous' },
+      }
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    // Prova ad applicare advanced constraints (supportate su Chrome Android)
+    const track = stream.getVideoTracks()[0];
+    if (track && track.applyConstraints) {
+      try {
+        await track.applyConstraints({
+          advanced: [
+            { focusMode: 'continuous' },
+            { focusDistance: 0.1 }
+          ]
+        });
+      } catch(e) { /* ignora se non supportato */ }
+    }
+
+    await reader.decodeFromStream(stream, 'video', onDecode);
     running = true;
     document.getElementById('camIdle').classList.add('gone');
     updateStartBtn();
@@ -689,6 +719,67 @@ async function flipCamera() {
   camIdx = (camIdx + 1) % cameras.length;
   if (running) { stopCamera(); setTimeout(startCamera, 200); }
   else { toast('Camera ' + (camIdx + 1) + ' / ' + cameras.length); }
+}
+
+// Tap-to-focus: forza il fuoco sul punto toccato
+async function tapFocus(e) {
+  const video = document.getElementById('video');
+  const stream = video.srcObject;
+  if (!stream) return;
+  const track = stream.getVideoTracks()[0];
+  if (!track) return;
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (!caps.focusMode) return;
+
+  try {
+    const rect = video.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const constraints = { focusMode: 'manual' };
+    if (caps.pointsOfInterest) constraints.pointsOfInterest = [{ x, y }];
+    await track.applyConstraints({ advanced: [constraints] });
+    // torna a continuous dopo 2s
+    setTimeout(async () => {
+      try { await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch(e) {}
+    }, 2000);
+    // feedback visivo
+    showFocusDot(e.clientX, e.clientY);
+  } catch(err) {}
+}
+
+function showFocusDot(cx, cy) {
+  let dot = document.getElementById('focusDot');
+  if (!dot) {
+    dot = document.createElement('div');
+    dot.id = 'focusDot';
+    dot.style.cssText = 'position:fixed;width:44px;height:44px;border:2px solid #00c47a;border-radius:50%;pointer-events:none;z-index:99;transform:translate(-50%,-50%);transition:opacity .4s;';
+    document.body.appendChild(dot);
+  }
+  dot.style.left = cx + 'px';
+  dot.style.top = cy + 'px';
+  dot.style.opacity = '1';
+  clearTimeout(dot._t);
+  dot._t = setTimeout(() => { dot.style.opacity = '0'; }, 700);
+}
+
+let torchOn = false;
+async function toggleTorch() {
+  const video = document.getElementById('video');
+  const stream = video.srcObject;
+  if (!stream) { toast('Avvia la fotocamera prima', 'err'); return; }
+  const track = stream.getVideoTracks()[0];
+  if (!track) return;
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (!caps.torch) { toast('Torcia non disponibile su questo dispositivo', 'err'); return; }
+  torchOn = !torchOn;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    document.getElementById('btnTorch').style.color = torchOn ? '#00c47a' : '';
+    toast(torchOn ? 'Torcia accesa' : 'Torcia spenta', 'ok');
+  } catch(e) {
+    toast('Torcia non controllabile', 'err');
+    torchOn = false;
+  }
 }
 
 function updateStartBtn() {
