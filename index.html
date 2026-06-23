@@ -8,192 +8,182 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0a0a0a">
 <title>Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root {
-  --bg:#0a0a0a; --s1:#111827; --s2:#1a2332; --s3:#243040;
-  --border:rgba(255,255,255,.07);
-  --green:#007853; --gh:#00c47a; --gd:#1e2d26;
-  --tx:#f1f5f9; --dim:#64748b; --mid:#94a3b8;
-  --red:#ef4444; --amber:#f59e0b;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0a;--s1:#111827;--s2:#1a2332;--s3:#243040;
+  --bd:rgba(255,255,255,.07);
+  --green:#007853;--gh:#00c47a;--gd:#1e2d26;
+  --tx:#f1f5f9;--dim:#64748b;--mid:#94a3b8;
+  --red:#ef4444;--amber:#f59e0b;
   --mono:'Courier New',monospace;
-  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe:env(safe-area-inset-bottom,0px);
 }
-html,body { height:100%; background:var(--bg); color:var(--tx);
+html,body{height:100%;background:var(--bg);color:var(--tx);
   font-family:'Inter',-apple-system,sans-serif;
-  overflow:hidden; touch-action:manipulation; -webkit-font-smoothing:antialiased; }
-
-#app { height:100vh; height:100dvh; display:flex; flex-direction:column; }
+  overflow:hidden;touch-action:manipulation;-webkit-font-smoothing:antialiased}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column}
 
 /* HEADER */
-header { display:flex; align-items:center; gap:10px; padding:12px 14px 10px;
-  background:var(--s1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.logo { font-size:17px; font-weight:800; letter-spacing:-.4px; flex:1; }
-.logo em { font-style:normal; color:var(--gh); }
-.hcount { font-size:12px; font-weight:600; color:var(--mid);
-  background:var(--s2); border:1px solid var(--border);
-  border-radius:20px; padding:4px 11px; font-variant-numeric:tabular-nums; }
-.hcount strong { color:var(--gh); }
-.icon-btn { width:34px; height:34px; border-radius:9px; border:1px solid var(--border);
-  background:var(--s2); color:var(--mid); font-size:15px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; }
-.icon-btn:active { background:var(--s3); }
+header{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;
+  background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0}
+.logo{font-size:17px;font-weight:800;letter-spacing:-.4px;flex:1}
+.logo em{font-style:normal;color:var(--gh)}
+.hcount{font-size:12px;font-weight:600;color:var(--mid);
+  background:var(--s2);border:1px solid var(--bd);
+  border-radius:20px;padding:4px 11px;font-variant-numeric:tabular-nums}
+.hcount strong{color:var(--gh)}
+.hbtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--bd);
+  background:var(--s2);color:var(--mid);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.hbtn:active{background:var(--s3)}
 
 /* VIDEO */
-.video-zone { position:relative; background:#000; overflow:hidden; flex-shrink:0; }
-#video { width:100%; height:100%; object-fit:cover; display:block; }
+.vzone{position:relative;background:#000;overflow:hidden;flex-shrink:0}
+#video{width:100%;height:100%;object-fit:cover;display:block}
 
-/* Scan frame */
-.sf-wrap { position:absolute; inset:0; display:flex; align-items:center;
-  justify-content:center; pointer-events:none; }
-.sf { width:min(70vw,260px); aspect-ratio:2.2/1; position:relative; }
-.c { position:absolute; width:20px; height:20px; border-color:var(--gh); border-style:solid; }
-.c.tl { top:0;left:0; border-width:2.5px 0 0 2.5px; border-radius:3px 0 0 0; }
-.c.tr { top:0;right:0; border-width:2.5px 2.5px 0 0; border-radius:0 3px 0 0; }
-.c.bl { bottom:0;left:0; border-width:0 0 2.5px 2.5px; border-radius:0 0 0 3px; }
-.c.br { bottom:0;right:0; border-width:0 2.5px 2.5px 0; border-radius:0 0 3px 0; }
-.sl { position:absolute; left:0;right:0; height:1.5px;
+/* scan frame */
+.sf-wrap{position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;pointer-events:none}
+.sf{width:min(72vw,270px);aspect-ratio:2.2/1;position:relative}
+.cor{position:absolute;width:22px;height:22px;border-color:var(--gh);border-style:solid}
+.cor.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:3px 0 0 0}
+.cor.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 3px 0 0}
+.cor.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 3px}
+.cor.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 3px 0}
+.sline{position:absolute;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--gh),transparent);
-  animation:sw 2s ease-in-out infinite; }
-@keyframes sw { 0%,100%{top:0;opacity:.4} 50%{top:calc(100% - 2px);opacity:.9} }
+  animation:sw 1.8s ease-in-out infinite}
+@keyframes sw{0%,100%{top:0;opacity:.4}50%{top:calc(100% - 2px);opacity:1}}
 
-/* Flash */
-.flash-ov { position:absolute; inset:0; background:var(--gh); opacity:0; pointer-events:none; }
-.flash-ov.pop { animation:fp .3s ease-out forwards; }
-@keyframes fp { 0%{opacity:.4} 100%{opacity:0} }
+/* flash */
+.flash{position:absolute;inset:0;background:var(--gh);opacity:0;pointer-events:none}
+.flash.pop{animation:fp .3s ease-out forwards}
+@keyframes fp{0%{opacity:.45}100%{opacity:0}}
 
-/* Cam idle */
-.cam-idle { position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; gap:14px; background:rgba(0,0,0,.92); }
-.cam-idle.gone { display:none; }
-.start-btn { background:var(--green); color:#fff; border:none; border-radius:13px;
-  padding:14px 34px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; }
-.start-btn:active { filter:brightness(.85); }
-.cam-sub { color:var(--dim); font-size:12px; text-align:center; max-width:220px; line-height:1.5; }
+/* idle overlay */
+.idle{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.92)}
+.idle.gone{display:none}
+.idle-icon{font-size:48px}
+.idle-btn{background:var(--green);color:#fff;border:none;border-radius:13px;
+  padding:14px 34px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.idle-btn:active{filter:brightness(.85)}
+.idle-sub{color:var(--dim);font-size:12px;text-align:center;max-width:220px;line-height:1.5}
+.idle-warn{color:var(--amber);font-size:12px;text-align:center;max-width:240px;line-height:1.5;display:none}
+.idle-warn.show{display:block}
 
-/* CONFIRM BANNER — shown when a barcode is detected, waits for user confirm */
-.confirm-banner {
-  flex-shrink:0;
-  display:none;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  background:#1a2a1a;
-  border-top:2px solid var(--gh);
-  border-bottom:1px solid var(--border);
-  animation:slide-in .2s ease;
-}
-.confirm-banner.show { display:flex; }
-@keyframes slide-in { from{transform:translateY(-8px);opacity:0} to{transform:none;opacity:1} }
-.cb-code { flex:1; font-family:var(--mono); font-size:15px; color:var(--gh);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.cb-ok { background:var(--gh); color:#000; border:none; border-radius:9px;
-  padding:10px 18px; font-family:inherit; font-size:14px; font-weight:800;
-  cursor:pointer; flex-shrink:0; }
-.cb-ok:active { filter:brightness(.85); }
-.cb-no { background:var(--s2); color:var(--red); border:1px solid var(--border);
-  border-radius:9px; padding:10px 14px; font-family:inherit; font-size:14px;
-  font-weight:700; cursor:pointer; flex-shrink:0; }
-.cb-no:active { filter:brightness(.85); }
+/* CONFIRM BANNER */
+.cbanner{flex-shrink:0;display:none;align-items:center;gap:8px;
+  padding:10px 12px;background:#162616;
+  border-top:2px solid var(--gh);border-bottom:1px solid var(--bd);
+  animation:sli .2s ease}
+.cbanner.show{display:flex}
+@keyframes sli{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.ccode{flex:1;font-family:var(--mono);font-size:15px;color:var(--gh);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-no{background:var(--s2);color:var(--red);border:1px solid var(--bd);
+  border-radius:9px;padding:10px 14px;font-family:inherit;font-size:14px;
+  font-weight:700;cursor:pointer;white-space:nowrap}
+.c-ok{background:var(--gh);color:#000;border:none;border-radius:9px;
+  padding:10px 18px;font-family:inherit;font-size:14px;font-weight:800;
+  cursor:pointer;white-space:nowrap}
+.c-no:active,.c-ok:active{filter:brightness(.85)}
 
 /* CONTROLS */
-.controls { display:flex; gap:8px; padding:9px 12px;
-  background:var(--s1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.ctrl-btn { flex:1; border:none; border-radius:10px; padding:10px 4px;
-  font-family:inherit; font-size:12px; font-weight:600; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; gap:4px; }
-.ctrl-btn:active { opacity:.75; }
-.c-start { background:var(--green); color:#fff; }
-.c-start.active { background:#1a3d2e; color:var(--gh); border:1px solid var(--green); }
-.c-sec { background:var(--s2); color:var(--mid); border:1px solid var(--border); }
-.c-undo { background:var(--s2); color:var(--amber); border:1px solid var(--border); }
-.c-list { background:var(--s2); color:var(--mid); border:1px solid var(--border); }
-.c-list.has { color:var(--gh); border-color:var(--green); }
+.ctrls{display:flex;gap:7px;padding:9px 12px;
+  background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0}
+.cbtn{flex:1;border:none;border-radius:10px;padding:10px 4px;
+  font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:4px}
+.cbtn:active{opacity:.75}
+.cb-start{background:var(--green);color:#fff}
+.cb-start.on{background:#1a3d2e;color:var(--gh);border:1px solid var(--green)}
+.cb-sec{background:var(--s2);color:var(--mid);border:1px solid var(--bd)}
+.cb-undo{background:var(--s2);color:var(--amber);border:1px solid var(--bd)}
+.cb-list{background:var(--s2);color:var(--mid);border:1px solid var(--bd)}
+.cb-list.has{color:var(--gh);border-color:var(--green)}
 
 /* MANUAL */
-.manual-row { display:flex; gap:8px; padding:9px 12px;
-  background:var(--s1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.manual-input { flex:1; background:var(--s2); border:1px solid var(--border);
-  border-radius:10px; color:var(--tx); font-family:var(--mono);
-  font-size:15px; padding:9px 13px; outline:none; }
-.manual-input::placeholder { color:var(--dim); }
-.manual-input:focus { border-color:var(--green); }
-.manual-add { background:var(--green); color:#fff; border:none; border-radius:10px;
-  padding:9px 16px; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
-.manual-add:active { filter:brightness(.85); }
+.manual{display:flex;gap:8px;padding:9px 12px;
+  background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0}
+.minput{flex:1;background:var(--s2);border:1px solid var(--bd);
+  border-radius:10px;color:var(--tx);font-family:var(--mono);
+  font-size:15px;padding:9px 13px;outline:none}
+.minput::placeholder{color:var(--dim)}
+.minput:focus{border-color:var(--green)}
+.madd{background:var(--green);color:#fff;border:none;border-radius:10px;
+  padding:9px 16px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.madd:active{filter:brightness(.85)}
 
 /* TICKER */
-.ticker { padding:7px 14px; background:var(--gd); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:10px; flex-shrink:0; min-height:34px; }
-.ticker.empty { opacity:.4; }
-.ticker-dot { width:6px;height:6px; border-radius:50%; background:var(--gh); flex-shrink:0; }
-.ticker-code { flex:1; font-family:var(--mono); font-size:13px; color:var(--gh);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ticker-qty { font-size:12px; font-weight:700; color:var(--dim); font-variant-numeric:tabular-nums; }
+.ticker{padding:7px 14px;background:var(--gd);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:34px}
+.ticker.empty{opacity:.35}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--gh);flex-shrink:0}
+.tcode{flex:1;font-family:var(--mono);font-size:13px;color:var(--gh);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tqty{font-size:12px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
 
 /* LIST PANEL */
-.list-panel { position:absolute; inset:0; z-index:50; display:flex;
-  flex-direction:column; background:var(--bg);
-  transform:translateY(100%); transition:transform .35s cubic-bezier(.32,1,.68,1); }
-.list-panel.open { transform:translateY(0); }
-.list-hdr { display:flex; align-items:center; gap:10px; padding:14px 14px 12px;
-  background:var(--s1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.list-title { font-size:16px; font-weight:700; flex:1; }
-.list-title span { color:var(--gh); margin-left:6px; font-size:13px; font-weight:600; }
-.la-btn { border:none; border-radius:9px; padding:7px 13px; font-family:inherit;
-  font-size:13px; font-weight:600; cursor:pointer; }
-.la-btn:active { opacity:.7; }
-.la-exp { background:var(--green); color:#fff; }
-.la-clr { background:var(--s2); color:var(--red); border:1px solid var(--border); }
-.la-cls { background:var(--s2); color:var(--mid); border:1px solid var(--border); }
-.list-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-.list-empty { display:flex; flex-direction:column; align-items:center;
-  justify-content:center; height:100%; gap:12px; color:var(--dim); font-size:14px; }
-.list-item { display:flex; align-items:center; padding:13px 14px;
-  border-bottom:1px solid var(--border); gap:12px; animation:ii .18s ease; }
-@keyframes ii { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
-.item-code { flex:1; font-family:var(--mono); font-size:15px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.item-qty-box { min-width:42px; height:36px; background:var(--gd);
-  border-radius:9px; border:1px solid rgba(0,196,122,.12);
-  display:flex; align-items:center; justify-content:center; }
-.item-qty { font-size:16px; font-weight:700; color:var(--gh);
-  font-variant-numeric:tabular-nums;
-  transition:transform .15s cubic-bezier(.34,1.56,.64,1); }
-.item-qty.bump { transform:scale(1.45); }
-.item-del { width:32px;height:32px; border-radius:8px; background:transparent;
-  border:1px solid var(--border); color:var(--dim); font-size:14px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; }
-.item-del:active { background:var(--red); color:#fff; border-color:var(--red); }
-.list-safe { height:calc(var(--safe-b) + 12px); flex-shrink:0; }
+.lpanel{position:absolute;inset:0;z-index:50;display:flex;
+  flex-direction:column;background:var(--bg);
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,1,.68,1)}
+.lpanel.open{transform:translateY(0)}
+.lhdr{display:flex;align-items:center;gap:8px;padding:14px 14px 12px;
+  background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0}
+.ltitle{font-size:16px;font-weight:700;flex:1}
+.ltitle span{color:var(--gh);margin-left:6px;font-size:13px;font-weight:600}
+.labtn{border:none;border-radius:9px;padding:7px 13px;font-family:inherit;
+  font-size:13px;font-weight:600;cursor:pointer}
+.labtn:active{opacity:.7}
+.la-exp{background:var(--green);color:#fff}
+.la-clr{background:var(--s2);color:var(--red);border:1px solid var(--bd)}
+.la-cls{background:var(--s2);color:var(--mid);border:1px solid var(--bd)}
+.lscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.lempty{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:100%;gap:12px;color:var(--dim);font-size:14px}
+.litem{display:flex;align-items:center;padding:13px 14px;
+  border-bottom:1px solid var(--bd);gap:12px;animation:ii .18s ease}
+@keyframes ii{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.icode{flex:1;font-family:var(--mono);font-size:15px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iqbox{min-width:42px;height:36px;background:var(--gd);border-radius:9px;
+  border:1px solid rgba(0,196,122,.12);display:flex;align-items:center;justify-content:center}
+.iqty{font-size:16px;font-weight:700;color:var(--gh);font-variant-numeric:tabular-nums;
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.iqty.bump{transform:scale(1.45)}
+.idel{width:32px;height:32px;border-radius:8px;background:transparent;
+  border:1px solid var(--bd);color:var(--dim);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.idel:active{background:var(--red);color:#fff;border-color:var(--red)}
+.lsafe{height:calc(var(--safe) + 12px);flex-shrink:0}
 
 /* TOAST */
-.toast { position:fixed; bottom:calc(var(--safe-b) + 22px); left:50%;
-  transform:translateX(-50%) translateY(20px); opacity:0;
-  background:var(--s3); border:1px solid var(--border); color:var(--tx);
-  border-radius:24px; padding:9px 20px; font-size:14px; font-weight:500;
-  z-index:200; transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1);
-  white-space:nowrap; pointer-events:none; }
-.toast.ok  { border-color:rgba(0,196,122,.4); color:var(--gh); }
-.toast.err { border-color:rgba(239,68,68,.4); color:#fca5a5; }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast{position:fixed;bottom:calc(var(--safe) + 22px);left:50%;
+  transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--s3);border:1px solid var(--bd);color:var(--tx);
+  border-radius:24px;padding:9px 20px;font-size:14px;font-weight:500;
+  z-index:200;transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;pointer-events:none}
+.toast.ok{border-color:rgba(0,196,122,.4);color:var(--gh)}
+.toast.err{border-color:rgba(239,68,68,.4);color:#fca5a5}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* SHEET */
-.sheet-ov { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:150;
-  display:none; align-items:flex-end; }
-.sheet-ov.open { display:flex; }
-.sheet { background:var(--s1); border-radius:20px 20px 0 0;
-  padding:22px 18px calc(var(--safe-b) + 26px); width:100%;
-  border-top:1px solid var(--border); }
-.sheet h3 { font-size:17px; font-weight:700; margin-bottom:8px; }
-.sheet p { color:var(--mid); font-size:14px; line-height:1.5; margin-bottom:22px; }
-.sheet-btns { display:flex; gap:10px; }
-.sh-btn { flex:1; padding:13px; border-radius:12px;
-  font-family:inherit; font-size:16px; font-weight:700; border:none; cursor:pointer; }
-.sh-cancel  { background:var(--s2); color:var(--tx); }
-.sh-confirm { background:var(--red); color:#fff; }
+.sov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;
+  display:none;align-items:flex-end}
+.sov.open{display:flex}
+.sbox{background:var(--s1);border-radius:20px 20px 0 0;
+  padding:22px 18px calc(var(--safe) + 26px);width:100%;border-top:1px solid var(--bd)}
+.sbox h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.sbox p{color:var(--mid);font-size:14px;line-height:1.5;margin-bottom:22px}
+.sbtns{display:flex;gap:10px}
+.sbtn{flex:1;padding:13px;border-radius:12px;font-family:inherit;
+  font-size:16px;font-weight:700;border:none;cursor:pointer}
+.sb-cancel{background:var(--s2);color:var(--tx)}
+.sb-confirm{background:var(--red);color:#fff}
 </style>
 </head>
 <body>
@@ -202,88 +192,86 @@ header { display:flex; align-items:center; gap:10px; padding:12px 14px 10px;
   <header>
     <div class="logo">scan<em>.</em></div>
     <div class="hcount" id="hcount"><strong>0</strong> codici</div>
-    <button class="icon-btn" onclick="toggleTorch()" title="Torcia">🔦</button>
-    <button class="icon-btn" onclick="flipCamera()" title="Cambia camera">⟳</button>
+    <button class="hbtn" onclick="toggleTorch()" title="Torcia">🔦</button>
+    <button class="hbtn" onclick="flipCamera()" title="Cambia camera">⟳</button>
   </header>
 
-  <!-- VIDEO -->
-  <div class="video-zone" id="videoZone">
+  <div class="vzone" id="vzone">
     <video id="video" playsinline muted></video>
     <div class="sf-wrap">
       <div class="sf">
-        <div class="c tl"></div><div class="c tr"></div>
-        <div class="c bl"></div><div class="c br"></div>
-        <div class="sl"></div>
+        <div class="cor tl"></div><div class="cor tr"></div>
+        <div class="cor bl"></div><div class="cor br"></div>
+        <div class="sline"></div>
       </div>
     </div>
-    <div class="flash-ov" id="flashOv"></div>
-    <div class="cam-idle" id="camIdle">
-      <div style="font-size:48px">📷</div>
-      <button class="start-btn" onclick="startCamera()">Avvia fotocamera</button>
-      <div class="cam-sub">Richiede connessione internet per caricare il lettore barcode</div>
+    <div class="flash" id="flash"></div>
+    <div class="idle" id="idle">
+      <div class="idle-icon">📷</div>
+      <button class="idle-btn" onclick="startCamera()">Avvia fotocamera</button>
+      <div class="idle-warn" id="idleWarn"></div>
+      <div class="idle-sub">HTTPS richiesto — funziona su GitHub Pages</div>
     </div>
   </div>
 
-  <!-- CONFIRM BANNER -->
-  <div class="confirm-banner" id="confirmBanner">
-    <div class="cb-code" id="cbCode">—</div>
-    <button class="cb-no" onclick="rejectCode()">✕ Scarta</button>
-    <button class="cb-ok" onclick="acceptCode()">✓ Aggiungi</button>
+  <!-- Banner di conferma -->
+  <div class="cbanner" id="cbanner">
+    <div class="ccode" id="ccode">—</div>
+    <button class="c-no" onclick="rejectCode()">✕ Scarta</button>
+    <button class="c-ok" onclick="acceptCode()">✓ Aggiungi</button>
   </div>
 
-  <!-- CONTROLS -->
-  <div class="controls">
-    <button class="ctrl-btn c-start" id="btnStart" onclick="toggleCamera()">
-      <span id="btnIcon">▶</span><span id="btnLabel">Avvia</span>
+  <div class="ctrls">
+    <button class="cbtn cb-start" id="btnStart" onclick="toggleCamera()">
+      <span id="bicon">▶</span><span id="blabel">Avvia</span>
     </button>
-    <button class="ctrl-btn c-undo" id="btnUndo" onclick="undoLast()" disabled>↩ Annulla</button>
-    <button class="ctrl-btn c-list" id="btnList" onclick="openList()">☰ Lista</button>
+    <button class="cbtn cb-undo" id="btnUndo" onclick="undoLast()" disabled>↩ Annulla</button>
+    <button class="cbtn cb-list" id="btnList" onclick="openList()">☰ Lista</button>
   </div>
 
-  <!-- MANUAL -->
-  <div class="manual-row">
-    <input class="manual-input" id="manualInput" type="text" inputmode="numeric"
-           placeholder="Codice manuale…" onkeydown="if(event.key==='Enter')addManual()">
-    <button class="manual-add" onclick="addManual()">Aggiungi</button>
+  <div class="manual">
+    <input class="minput" id="minput" type="text" inputmode="numeric"
+           placeholder="Codice manuale…"
+           onkeydown="if(event.key==='Enter')addManual()">
+    <button class="madd" onclick="addManual()">Aggiungi</button>
   </div>
 
-  <!-- TICKER -->
   <div class="ticker empty" id="ticker">
-    <div class="ticker-dot"></div>
-    <div class="ticker-code" id="tickerCode">In attesa di scansione…</div>
-    <div class="ticker-qty" id="tickerQty"></div>
+    <div class="tdot"></div>
+    <div class="tcode" id="tcode">In attesa…</div>
+    <div class="tqty" id="tqty"></div>
   </div>
 
-</div><!-- /#app -->
+</div>
 
-<!-- LIST PANEL -->
-<div class="list-panel" id="listPanel">
-  <div class="list-hdr">
-    <div class="list-title">Lista <span id="listCount">0</span></div>
+<!-- Lista -->
+<div class="lpanel" id="lpanel">
+  <div class="lhdr">
+    <div class="ltitle">Lista <span id="lcount">0</span></div>
     <div style="display:flex;gap:8px">
-      <button class="la-btn la-exp" onclick="exportCSV()">⬇ CSV</button>
-      <button class="la-btn la-clr" onclick="askClear()">🗑</button>
-      <button class="la-btn la-cls" onclick="closeList()">✕</button>
+      <button class="labtn la-exp" onclick="exportCSV()">⬇ CSV</button>
+      <button class="labtn la-clr" onclick="askClear()">🗑</button>
+      <button class="labtn la-cls" onclick="closeList()">✕</button>
     </div>
   </div>
-  <div class="list-scroll" id="listScroll">
-    <div class="list-empty" id="listEmpty">
+  <div class="lscroll" id="lscroll">
+    <div class="lempty" id="lempty">
       <div style="font-size:44px">📋</div>
       <div>Nessun codice ancora.<br>Inizia a scansionare.</div>
     </div>
   </div>
-  <div class="list-safe"></div>
+  <div class="lsafe"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<div class="sheet-ov" id="sheetOv">
-  <div class="sheet">
+<div class="sov" id="sov">
+  <div class="sbox">
     <h3>Svuota lista</h3>
     <p>Tutti i codici verranno eliminati definitivamente.</p>
-    <div class="sheet-btns">
-      <button class="sh-btn sh-cancel"  onclick="closeSheet()">Annulla</button>
-      <button class="sh-btn sh-confirm" onclick="doClear()">Elimina tutto</button>
+    <div class="sbtns">
+      <button class="sbtn sb-cancel" onclick="closeSov()">Annulla</button>
+      <button class="sbtn sb-confirm" onclick="doClear()">Elimina tutto</button>
     </div>
   </div>
 </div>
@@ -291,296 +279,311 @@ header { display:flex; align-items:center; gap:10px; padding:12px 14px 10px;
 <script>
 'use strict';
 
-// ── STATE ──────────────────────────────────────────────────────
-const SK = 'scanner_v2';
-let items = {};
-let itemOrder = [];
-let lastAdded = null; // { code, isNew } for undo
-
+// ── STORAGE ──────────────────────────────────────────────────
+const SK = 'scanner_v3';
+let items = {}, order = [], lastAdded = null;
 try {
   const r = localStorage.getItem(SK);
-  if (r) { const p=JSON.parse(r); items=p.items||{}; itemOrder=p.order||Object.keys(items); }
+  if (r) { const p=JSON.parse(r); items=p.i||{}; order=p.o||Object.keys(items); }
 } catch(e){}
+function persist(){ try{ localStorage.setItem(SK,JSON.stringify({i:items,o:order})); }catch(e){} }
 
-function persist() {
-  try { localStorage.setItem(SK, JSON.stringify({items, order:itemOrder})); } catch(e){}
+// ── VIDEO HEIGHT ──────────────────────────────────────────────
+function setVH(){
+  document.getElementById('vzone').style.height =
+    Math.max(160,Math.min(260,Math.round(window.innerHeight*.38)))+'px';
 }
+setVH(); window.addEventListener('resize',setVH);
 
-// ── VIDEO HEIGHT ───────────────────────────────────────────────
-function setVH() {
-  const h = Math.max(160, Math.min(260, Math.round(window.innerHeight * 0.38)));
-  document.getElementById('videoZone').style.height = h + 'px';
-}
-setVH(); window.addEventListener('resize', setVH);
-
-// ── CAMERA ────────────────────────────────────────────────────
-let reader = null;
+// ── CAMERA STATE ──────────────────────────────────────────────
+let stream = null;
+let detector = null;
 let cameras = [];
 let camIdx = 0;
 let running = false;
+let paused = false;   // true while waiting for confirm
 let torchOn = false;
+let rafId = null;
 
-// Pending detect state
-let pendingCode = null;    // code waiting for user confirm
-let scanning = false;      // false = paused waiting for confirm
-
-async function ensureReader() {
-  if (reader) return true;
-  if (!window.ZXing) { toast('ZXing non caricato — connessione internet richiesta', 'err'); return false; }
+// ── DETECT LOOP (native Barcode Detection API) ────────────────
+async function initDetector(){
+  if (detector) return true;
+  if (!('BarcodeDetector' in window)){
+    showWarn('Barcode Detection API non supportata su questo browser.\nProva Chrome su Android.');
+    return false;
+  }
+  // Supported formats — EAN-13 first
+  let formats;
   try {
-    reader = new ZXing.BrowserMultiFormatReader();
-    cameras = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    const ri = cameras.findIndex(c => /back|rear|environment|post/i.test(c.label));
-    if (ri >= 0) camIdx = ri;
-    return true;
-  } catch(e) { toast('Errore inizializzazione', 'err'); return false; }
+    formats = await BarcodeDetector.getSupportedFormats();
+  } catch(e){
+    formats = ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e','itf'];
+  }
+  detector = new BarcodeDetector({ formats });
+  return true;
 }
 
-async function startCamera() {
-  if (!await ensureReader()) return;
+async function startCamera(){
+  if (!await initDetector()) return;
+
+  // Enumerate cameras once
+  if (!cameras.length){
+    try {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      cameras = devs.filter(d=>d.kind==='videoinput');
+      const ri = cameras.findIndex(c=>/back|rear|environment|post/i.test(c.label));
+      if (ri>=0) camIdx=ri;
+    } catch(e){}
+  }
+
+  // Stop existing stream
+  if (stream) stream.getTracks().forEach(t=>t.stop());
+
   try {
     const deviceId = cameras[camIdx]?.deviceId;
-    const stream = await navigator.mediaDevices.getUserMedia({ video: {
+    stream = await navigator.mediaDevices.getUserMedia({ video:{
       ...(deviceId ? {deviceId:{exact:deviceId}} : {facingMode:{ideal:'environment'}}),
       width:{ideal:1920}, height:{ideal:1080},
     }});
 
-    // Apply autofocus
+    // Autofocus
     const track = stream.getVideoTracks()[0];
     try {
-      await track.applyConstraints({ advanced:[
+      await track.applyConstraints({advanced:[
         {focusMode:'continuous'},
         {exposureMode:'continuous'},
-        {whiteBalanceMode:'continuous'}
+        {whiteBalanceMode:'continuous'},
       ]});
     } catch(e){}
 
-    scanning = true;
-    await reader.decodeFromStream(stream, 'video', onDecode);
-    running = true;
-    document.getElementById('camIdle').classList.add('gone');
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    await video.play();
+
+    running = true; paused = false;
+    document.getElementById('idle').classList.add('gone');
     updateStartBtn();
-    toast('Fotocamera attiva', 'ok');
-  } catch(e) {
+    scanLoop();
+    toast('Fotocamera attiva','ok');
+  } catch(e){
     running = false;
-    toast(e.name === 'NotAllowedError' ? 'Permesso fotocamera negato' : 'Fotocamera non disponibile', 'err');
+    const msg = e.name==='NotAllowedError'
+      ? 'Permesso fotocamera negato'
+      : 'Fotocamera non disponibile: '+e.message;
+    showWarn(msg);
+    toast(msg,'err');
   }
 }
 
-function stopCamera() {
-  if (reader) reader.reset();
-  running = false; scanning = false;
+function stopCamera(){
+  if (rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  const v=document.getElementById('video'); v.srcObject=null;
+  running=false; paused=false;
   hideBanner();
-  document.getElementById('camIdle').classList.remove('gone');
+  document.getElementById('idle').classList.remove('gone');
   updateStartBtn();
 }
 
-function toggleCamera() { running ? stopCamera() : startCamera(); }
+function toggleCamera(){ running ? stopCamera() : startCamera(); }
 
-async function flipCamera() {
-  if (!cameras.length) await ensureReader();
-  if (cameras.length <= 1) { toast('Una sola camera', 'err'); return; }
-  camIdx = (camIdx + 1) % cameras.length;
-  if (running) { stopCamera(); setTimeout(startCamera, 250); }
-  else toast('Camera ' + (camIdx+1) + '/' + cameras.length);
+async function flipCamera(){
+  if (!cameras.length){
+    try {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      cameras = devs.filter(d=>d.kind==='videoinput');
+    } catch(e){}
+  }
+  if (cameras.length<=1){ toast('Una sola camera','err'); return; }
+  camIdx = (camIdx+1) % cameras.length;
+  if (running){ stopCamera(); setTimeout(startCamera,200); }
+  else toast('Camera '+(camIdx+1)+'/'+cameras.length);
 }
 
-async function toggleTorch() {
-  const v = document.getElementById('video');
-  if (!v.srcObject) { toast('Avvia la fotocamera prima', 'err'); return; }
-  const track = v.srcObject.getVideoTracks()[0];
-  if (!track) return;
+async function toggleTorch(){
+  if (!stream){ toast('Avvia la fotocamera prima','err'); return; }
+  const track = stream.getVideoTracks()[0];
   const caps = track.getCapabilities?.() || {};
-  if (!caps.torch) { toast('Torcia non disponibile', 'err'); return; }
+  if (!caps.torch){ toast('Torcia non disponibile','err'); return; }
   torchOn = !torchOn;
   try {
     await track.applyConstraints({advanced:[{torch:torchOn}]});
-    toast(torchOn ? '🔦 Torcia accesa' : 'Torcia spenta', 'ok');
-  } catch(e) { toast('Torcia non controllabile', 'err'); torchOn=false; }
+    toast(torchOn?'🔦 Torcia accesa':'Torcia spenta','ok');
+  } catch(e){ toast('Torcia non controllabile','err'); torchOn=false; }
 }
 
-function updateStartBtn() {
-  const btn = document.getElementById('btnStart');
-  document.getElementById('btnIcon').textContent  = running ? '■' : '▶';
-  document.getElementById('btnLabel').textContent = running ? 'Stop' : 'Avvia';
-  btn.classList.toggle('active', running);
+// ── SCAN LOOP ────────────────────────────────────────────────
+async function scanLoop(){
+  if (!running) return;
+  if (!paused){
+    const video = document.getElementById('video');
+    if (video.readyState >= 2){
+      try {
+        const results = await detector.detect(video);
+        if (results.length > 0){
+          const code = results[0].rawValue;
+          if (code){
+            paused = true;
+            doFlash();
+            try{ navigator.vibrate&&navigator.vibrate(80); }catch(e){}
+            showBanner(code);
+            return; // don't schedule next frame — wait for user
+          }
+        }
+      } catch(e){}
+    }
+  }
+  rafId = requestAnimationFrame(scanLoop);
 }
 
-// ── DECODE CALLBACK ───────────────────────────────────────────
-function onDecode(result, err) {
-  if (!result || !scanning) return;
-  const val = result.getText();
-  if (!val) return;
-
-  // Pause scanning, show confirm banner
-  scanning = false;
-  pendingCode = val;
-  doFlash();
-  try { navigator.vibrate && navigator.vibrate(80); } catch(e){}
-  showBanner(val);
+// ── CONFIRM BANNER ────────────────────────────────────────────
+function showBanner(code){
+  document.getElementById('ccode').textContent = code;
+  document.getElementById('cbanner').classList.add('show');
+}
+function hideBanner(){
+  document.getElementById('cbanner').classList.remove('show');
 }
 
-// ── CONFIRM BANNER ─────────────────────────────────────────────
-function showBanner(code) {
-  document.getElementById('cbCode').textContent = code;
-  document.getElementById('confirmBanner').classList.add('show');
-}
-function hideBanner() {
-  document.getElementById('confirmBanner').classList.remove('show');
-  pendingCode = null;
-}
-
-function acceptCode() {
-  if (!pendingCode) return;
-  addCode(pendingCode);
+function acceptCode(){
+  const code = document.getElementById('ccode').textContent;
   hideBanner();
-  // Resume scanning after short delay
-  setTimeout(() => { scanning = true; }, 800);
+  addCode(code);
+  setTimeout(()=>{ paused=false; rafId=requestAnimationFrame(scanLoop); }, 600);
 }
 
-function rejectCode() {
+function rejectCode(){
   toast('Codice scartato');
   hideBanner();
-  setTimeout(() => { scanning = true; }, 400);
+  setTimeout(()=>{ paused=false; rafId=requestAnimationFrame(scanLoop); }, 300);
 }
 
-// ── ADD CODE ──────────────────────────────────────────────────
-function addCode(code) {
-  code = String(code).trim(); if (!code) return;
-  const isNew = !items[code];
-  items[code] = (items[code] || 0) + 1;
-  if (isNew) itemOrder.push(code);
-  lastAdded = { code, isNew };
-  persist(); updateHeader(); updateTicker(code, items[code]);
-  updateListBtn(); updateUndoBtn();
-  if (listOpen) renderList();
-  else if (!isNew) bumpQty(code);
-  toast(isNew ? '✓ ' + code : '✓ ' + code + '  ×' + items[code], 'ok');
+// ── ADD ───────────────────────────────────────────────────────
+function addCode(code){
+  code=String(code).trim(); if(!code) return;
+  const isNew=!items[code];
+  items[code]=(items[code]||0)+1;
+  if(isNew) order.push(code);
+  lastAdded={code,isNew};
+  persist(); upHeader(); upTicker(code,items[code]); upListBtn(); upUndoBtn();
+  if(listOpen) renderList();
+  toast(isNew?'✓ '+code:'✓ '+code+'  ×'+items[code],'ok');
 }
 
-function addManual() {
-  const inp = document.getElementById('manualInput');
-  const c = inp.value.trim();
-  if (!c) { toast('Inserisci un codice', 'err'); return; }
+function addManual(){
+  const inp=document.getElementById('minput');
+  const c=inp.value.trim();
+  if(!c){ toast('Inserisci un codice','err'); return; }
   addCode(c); inp.value='';
 }
 
-// ── UNDO ──────────────────────────────────────────────────────
-function undoLast() {
-  if (!lastAdded) return;
-  const { code, isNew } = lastAdded;
-  if (!items[code]) return;
+// ── UNDO ─────────────────────────────────────────────────────
+function undoLast(){
+  if(!lastAdded) return;
+  const {code,isNew}=lastAdded;
+  if(items[code]===undefined) return;
   items[code]--;
-  if (items[code] <= 0) {
-    delete items[code];
-    itemOrder = itemOrder.filter(k => k !== code);
-  }
-  lastAdded = null;
-  persist(); updateHeader(); updateListBtn(); updateUndoBtn();
-  if (listOpen) renderList();
-  updateTicker(code, items[code] || 0);
-  toast('↩ Annullato: ' + code);
+  if(items[code]<=0){ delete items[code]; order=order.filter(k=>k!==code); }
+  lastAdded=null;
+  persist(); upHeader(); upListBtn(); upUndoBtn();
+  if(listOpen) renderList();
+  upTicker(code, items[code]||0);
+  toast('↩ Annullato: '+code);
 }
 
-function updateUndoBtn() {
-  document.getElementById('btnUndo').disabled = !lastAdded;
+// ── UI HELPERS ────────────────────────────────────────────────
+function updateStartBtn(){
+  document.getElementById('bicon').textContent  = running?'■':'▶';
+  document.getElementById('blabel').textContent = running?'Stop':'Avvia';
+  document.getElementById('btnStart').classList.toggle('on',running);
 }
-
-// ── UI ────────────────────────────────────────────────────────
-function updateHeader() {
-  const n = Object.keys(items).length;
-  document.getElementById('hcount').innerHTML = '<strong>' + n + '</strong> ' + (n===1?'codice':'codici');
-  document.getElementById('listCount').textContent = n;
+function upHeader(){
+  const n=Object.keys(items).length;
+  document.getElementById('hcount').innerHTML='<strong>'+n+'</strong> '+(n===1?'codice':'codici');
+  document.getElementById('lcount').textContent=n;
 }
-
-function updateTicker(code, qty) {
-  const t = document.getElementById('ticker');
-  t.classList.remove('empty');
-  document.getElementById('tickerCode').textContent = code;
-  document.getElementById('tickerQty').textContent = qty > 0 ? '×'+qty : '';
+function upTicker(code,qty){
+  document.getElementById('ticker').classList.remove('empty');
+  document.getElementById('tcode').textContent=code;
+  document.getElementById('tqty').textContent=qty>0?'×'+qty:'';
 }
-
-function updateListBtn() {
-  document.getElementById('btnList').classList.toggle('has', Object.keys(items).length > 0);
-}
-
-function doFlash() {
-  const f = document.getElementById('flashOv');
+function upListBtn(){ document.getElementById('btnList').classList.toggle('has',Object.keys(items).length>0); }
+function upUndoBtn(){ document.getElementById('btnUndo').disabled=!lastAdded; }
+function doFlash(){
+  const f=document.getElementById('flash');
   f.classList.remove('pop'); void f.offsetWidth; f.classList.add('pop');
 }
-
-function bumpQty(code) {
-  const el = document.querySelector(`[data-code="${CSS.escape(code)}"] .item-qty`);
-  if (!el) return;
-  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-  setTimeout(() => el.classList.remove('bump'), 250);
+function showWarn(msg){
+  const w=document.getElementById('idleWarn');
+  w.textContent=msg; w.classList.add('show');
 }
 
-// ── LIST ─────────────────────────────────────────────────────
-let listOpen = false;
-function openList() { listOpen=true; document.getElementById('listPanel').classList.add('open'); renderList(); }
-function closeList() { listOpen=false; document.getElementById('listPanel').classList.remove('open'); }
+// ── LIST ──────────────────────────────────────────────────────
+let listOpen=false;
+function openList(){ listOpen=true; document.getElementById('lpanel').classList.add('open'); renderList(); }
+function closeList(){ listOpen=false; document.getElementById('lpanel').classList.remove('open'); }
 
-function renderList() {
-  const sc=document.getElementById('listScroll'), em=document.getElementById('listEmpty');
-  const keys=itemOrder.filter(k=>items[k]!==undefined);
-  if (!keys.length) { em.style.display='flex'; [...sc.children].forEach(c=>{if(c!==em)c.remove()}); return; }
+function renderList(){
+  const sc=document.getElementById('lscroll'), em=document.getElementById('lempty');
+  const keys=order.filter(k=>items[k]!==undefined);
+  if(!keys.length){ em.style.display='flex'; [...sc.children].forEach(c=>{if(c!==em)c.remove()}); return; }
   em.style.display='none';
   [...sc.children].forEach(c=>{if(c!==em)c.remove()});
-  [...keys].reverse().forEach(code => {
-    const d=document.createElement('div'); d.className='list-item'; d.dataset.code=code;
-    d.innerHTML=`<div class="item-code">${esc(code)}</div>`+
-      `<div class="item-qty-box"><div class="item-qty">${items[code]}</div></div>`+
-      `<button class="item-del" onclick="delCode(${JSON.stringify(code)})">✕</button>`;
+  [...keys].reverse().forEach(code=>{
+    const d=document.createElement('div'); d.className='litem'; d.dataset.code=code;
+    d.innerHTML=`<div class="icode">${esc(code)}</div>`+
+      `<div class="iqbox"><div class="iqty">${items[code]}</div></div>`+
+      `<button class="idel" onclick="delCode(${JSON.stringify(code)})">✕</button>`;
     sc.appendChild(d);
   });
 }
-
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function delCode(code){ delete items[code]; itemOrder=itemOrder.filter(k=>k!==code);
-  if(lastAdded?.code===code) { lastAdded=null; updateUndoBtn(); }
-  persist(); updateHeader(); updateListBtn(); renderList(); toast('Rimosso'); }
+function delCode(code){
+  delete items[code]; order=order.filter(k=>k!==code);
+  if(lastAdded?.code===code){lastAdded=null;upUndoBtn();}
+  persist(); upHeader(); upListBtn(); renderList(); toast('Rimosso');
+}
 
 // ── CSV ───────────────────────────────────────────────────────
-function exportCSV() {
-  const keys=itemOrder.filter(k=>items[k]!==undefined);
-  if (!keys.length) { toast('Nessun codice', 'err'); return; }
-  const bom='\uFEFF', hdr='Codice,Quantita\r\n';
+function exportCSV(){
+  const keys=order.filter(k=>items[k]!==undefined);
+  if(!keys.length){ toast('Nessun codice','err'); return; }
+  const bom='\uFEFF',hdr='Codice,Quantita\r\n';
   const rows=keys.map(c=>`${cell(c)},${items[c]}`).join('\r\n');
   const blob=new Blob([bom+hdr+rows],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob), a=document.createElement('a');
-  const now=new Date();
-  const ts=`${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}_${p(now.getHours())}${p(now.getMinutes())}`;
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  const n=new Date();
+  const ts=`${n.getFullYear()}${p(n.getMonth()+1)}${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}`;
   a.href=url; a.download=`barcode_${ts}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  toast(`CSV esportato — ${keys.length} codici`, 'ok');
+  toast(`CSV esportato — ${keys.length} codici`,'ok');
 }
 function cell(v){ v=String(v); return (v.includes(',')||v.includes('"')||v.includes('\n'))?'"'+v.replace(/"/g,'""')+'"':v; }
 function p(n){ return String(n).padStart(2,'0'); }
 
 // ── CLEAR ─────────────────────────────────────────────────────
-function askClear(){ if (!Object.keys(items).length){ toast('Lista già vuota','err'); return; } document.getElementById('sheetOv').classList.add('open'); }
-function closeSheet(){ document.getElementById('sheetOv').classList.remove('open'); }
+function askClear(){ if(!Object.keys(items).length){toast('Lista già vuota','err');return;} document.getElementById('sov').classList.add('open'); }
+function closeSov(){ document.getElementById('sov').classList.remove('open'); }
 function doClear(){
-  items={}; itemOrder=[]; lastAdded=null;
-  persist(); updateHeader(); updateListBtn(); updateUndoBtn(); renderList();
+  items={}; order=[]; lastAdded=null;
+  persist(); upHeader(); upListBtn(); upUndoBtn(); renderList();
   document.getElementById('ticker').classList.add('empty');
-  document.getElementById('tickerCode').textContent='In attesa di scansione…';
-  document.getElementById('tickerQty').textContent='';
-  closeSheet(); toast('Lista svuotata');
+  document.getElementById('tcode').textContent='In attesa…';
+  document.getElementById('tqty').textContent='';
+  closeSov(); toast('Lista svuotata');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
-let toastT=null;
+let tT=null;
 function toast(msg,type=''){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast'+(type?' '+type:'');
   void t.offsetWidth; t.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2500);
+  clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),2500);
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-updateHeader(); updateListBtn(); updateUndoBtn();
+upHeader(); upListBtn(); upUndoBtn();
 </script>
 </body>
 </html>
