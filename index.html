@@ -265,6 +265,19 @@ header{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;
 
 <div class="toast" id="toast"></div>
 
+
+<!-- EXIT CONFIRM -->
+<div class="sov" id="exitOv">
+  <div class="sbox">
+    <h3>Esci dalla pagina?</h3>
+    <p>Hai <strong id="exitCount">0</strong> codici in lista. Se esci ora i dati restano salvati nel browser, ma assicurati di aver esportato il CSV prima.</p>
+    <div class="sbtns">
+      <button class="sbtn sb-cancel" onclick="closeExitConfirm()">Resta</button>
+      <button class="sbtn sb-confirm" onclick="history.back()">Esci</button>
+    </div>
+  </div>
+</div>
+
 <div class="sov" id="sov">
   <div class="sbox">
     <h3>Svuota lista</h3>
@@ -312,14 +325,12 @@ async function initDetector(){
     showWarn('Barcode Detection API non supportata su questo browser.\nProva Chrome su Android.');
     return false;
   }
-  // Supported formats — EAN-13 first
-  let formats;
-  try {
-    formats = await BarcodeDetector.getSupportedFormats();
-  } catch(e){
-    formats = ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e','itf'];
-  }
-  detector = new BarcodeDetector({ formats });
+  // Solo i formati usati in farmacia — escludiamo code_39 e itf che causano misread
+  const WANTED = ['ean_13','ean_8','code_128','upc_a','upc_e','qr_code'];
+  let supported;
+  try { supported = await BarcodeDetector.getSupportedFormats(); } catch(e){ supported = WANTED; }
+  const formats = WANTED.filter(f => supported.includes(f));
+  detector = new BarcodeDetector({ formats: formats.length ? formats : WANTED });
   return true;
 }
 
@@ -421,12 +432,14 @@ async function scanLoop(){
       try {
         const results = await detector.detect(video);
         if (results.length > 0){
-          const code = results[0].rawValue;
+          const raw = results[0].rawValue;
+          const fmt = results[0].format;
+          const code = normalizeCode(raw, fmt);
           if (code){
             paused = true;
             doFlash();
             try{ navigator.vibrate&&navigator.vibrate(80); }catch(e){}
-            showBanner(code);
+            showBanner(code, fmt);
             return; // don't schedule next frame — wait for user
           }
         }
@@ -437,8 +450,30 @@ async function scanLoop(){
 }
 
 // ── CONFIRM BANNER ────────────────────────────────────────────
-function showBanner(code){
+function normalizeCode(raw, fmt) {
+  if (!raw) return null;
+  raw = raw.trim();
+
+  // EAN-13 letto come UPC-A (12 cifre numeriche) -> aggiungi 0 iniziale
+  if ((fmt === 'upc_a' || fmt === 'ean_13') && /^\d{12}$/.test(raw)) {
+    raw = '0' + raw; // diventa 13 cifre
+  }
+
+  // Validazione: EAN-13 deve essere 13 cifre numeriche
+  if (fmt === 'ean_13' && !/^\d{13}$/.test(raw)) return null;
+  // EAN-8 deve essere 8 cifre
+  if (fmt === 'ean_8' && !/^\d{8}$/.test(raw)) return null;
+  // UPC dopo normalizzazione
+  if (fmt === 'upc_a' && !/^\d{13}$/.test(raw) && !/^\d{12}$/.test(raw)) return null;
+
+  return raw;
+}
+
+function showBanner(code, fmt){
   document.getElementById('ccode').textContent = code;
+  // Mostra il formato rilevato come hint
+  const hint = fmt ? fmt.replace('_','-').toUpperCase() : '';
+  document.getElementById('cbanner').title = hint;
   document.getElementById('cbanner').classList.add('show');
 }
 function hideBanner(){
@@ -584,6 +619,48 @@ function toast(msg,type=''){
 
 // ── INIT ──────────────────────────────────────────────────────
 upHeader(); upListBtn(); upUndoBtn();
+
+// ── PROTEZIONE USCITA ─────────────────────────────────────────
+// Chiede conferma se ci sono codici salvati e si tenta di uscire
+window.addEventListener('beforeunload', function(e) {
+  if (Object.keys(items).length > 0) {
+    e.preventDefault();
+    e.returnValue = ''; // richiesto da Chrome per mostrare il dialog
+  }
+});
+
+// Gestione tasto Back su Android (history API)
+// Aggiungiamo uno stato fittizio in modo che il "back" torni qui
+// invece di uscire dalla pagina
+history.pushState({ scanner: true }, '');
+window.addEventListener('popstate', function(e) {
+  // Se la lista è aperta, chiudila invece di uscire
+  if (listOpen) {
+    closeList();
+    history.pushState({ scanner: true }, '');
+    return;
+  }
+  // Altrimenti mostra conferma uscita
+  if (Object.keys(items).length > 0) {
+    showExitConfirm();
+    history.pushState({ scanner: true }, ''); // rimetti lo stato per non uscire
+  }
+  // Se lista vuota lascia uscire normalmente
+});
+
+function showExitConfirm() {
+  document.getElementById('exitCount').textContent = Object.keys(items).length;
+  document.getElementById('exitOv').classList.add('open');
+}
+function closeExitConfirm() {
+  document.getElementById('exitOv').classList.remove('open');
+}
+function confirmExit() {
+  // Rimuovi la protezione e vai indietro davvero
+  window.removeEventListener('beforeunload', arguments.callee);
+  items = {}; // svuota per non riattivare beforeunload
+  history.back();
+}
 </script>
 </body>
 </html>
